@@ -792,12 +792,12 @@ class RpmGenerator(BloomGenerator):
         # Generate substitution values
         subs = self.get_subs(package, rpm_distro, releaser_history)
          # 如果是 openEuler，添加特定宏或配置
-         if self.os_name.lower() == 'openeuler':
-             info("Applying openEuler-specific configurations to RPM package.")
-              subs['BuildDepends'].append('gcc')
-              subs['BuildDepends'].append('make')
-             subs['BuildDepends'].append('python3-devel')
-             subs['RPMMacros'] = '%define _openeuler_specific_macro 1'
+    if self.os_name.lower() == 'openeuler':
+        info("Detected openEuler system. Applying openEuler-specific configurations.")
+        subs['BuildDepends'].append('gcc')
+        subs['BuildDepends'].append('make')
+        subs['BuildDepends'].append('python3-devel')
+        subs['RPMMacros'] = '%define _openeuler_specific_macro 1'
 
         # Use subs to create and store releaser history
         self.set_releaser_history(dict(subs['changelogs']))
