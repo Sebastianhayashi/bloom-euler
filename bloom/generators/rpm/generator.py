@@ -485,6 +485,11 @@ class RpmGenerator(BloomGenerator):
         self.os_name = args.os_name
         self.distros = args.distros
         self.skip_keys = args.skip_keys or set()
+        # 添加 openEuler 系统检测逻辑
+        if self.os_name.lower() == 'openeuler':
+            info("Detected openEuler system. Applying openEuler-specific configurations.")
+        if not self.distros:
+            self.distros = ['24.09']  # 设置默认发行版
         if self.distros in [None, []]:
             index = rosdistro.get_index(rosdistro.get_index_url())
             distribution_file = rosdistro.get_distribution_file(index, self.rosdistro)
@@ -786,6 +791,14 @@ class RpmGenerator(BloomGenerator):
         releaser_history = self.get_releaser_history()
         # Generate substitution values
         subs = self.get_subs(package, rpm_distro, releaser_history)
+         # 如果是 openEuler，添加特定宏或配置
+         if self.os_name.lower() == 'openeuler':
+             info("Applying openEuler-specific configurations to RPM package.")
+              subs['BuildDepends'].append('gcc')
+              subs['BuildDepends'].append('make')
+             subs['BuildDepends'].append('python3-devel')
+             subs['RPMMacros'] = '%define _openeuler_specific_macro 1'
+
         # Use subs to create and store releaser history
         self.set_releaser_history(dict(subs['changelogs']))
         # Template files

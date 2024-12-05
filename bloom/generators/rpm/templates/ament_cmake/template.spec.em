@@ -5,6 +5,10 @@
 %global __provides_exclude_from ^@(InstallationPrefix)/.*$
 %global __requires_exclude_from ^@(InstallationPrefix)/.*$
 
+%if 0%{?openeuler}
+%define _openeuler_specific_macro 1
+%endif
+
 Name:           @(Package)
 Version:        @(Version)
 Release:        @(RPMInc)%{?dist}%{?release_suffix}
