@@ -786,41 +786,40 @@ class RpmGenerator(BloomGenerator):
         )
 
     def generate_rpm(self, package, rpm_distro, rpm_dir='rpm'):
-    info("Generating RPM for {0} {1}...".format(self.os_name, rpm_distro))
-    # Try to retrieve the releaser_history
-    releaser_history = self.get_releaser_history()
-    # Generate substitution values
-    subs = self.get_subs(package, rpm_distro, releaser_history)
+        info("Generating RPM for {0} {1}...".format(self.os_name, rpm_distro))
+        # Try to retrieve the releaser_history
+        releaser_history = self.get_releaser_history()
+        # Generate substitution values
+        subs = self.get_subs(package, rpm_distro, releaser_history)
     
-    # 如果是 openEuler，添加特定宏或配置
-    if self.os_name.lower() == 'openeuler':
-        info("Detected openEuler system. Applying openEuler-specific configurations.")
-        subs['BuildDepends'].append('gcc')
-        subs['BuildDepends'].append('make')
-        subs['BuildDepends'].append('python3-devel')
-        subs['RPMMacros'] = '%define _openeuler_specific_macro 1'
+        # 如果是 openEuler，添加特定宏或配置
+        if self.os_name.lower() == 'openeuler':
+            info("Detected openEuler system. Applying openEuler-specific configurations.")
+            subs['BuildDepends'].append('gcc')
+            subs['BuildDepends'].append('make')
+            subs['BuildDepends'].append('python3-devel')
+            subs['RPMMacros'] = '%define _openeuler_specific_macro 1'
 
-    # Use subs to create and store releaser history
-    self.set_releaser_history(dict(subs['changelogs']))
-    # Template files
-    template_files = process_template_files('.', subs)
-    # Remove any residual template files
-    execute_command('git rm -rf ' + ' '.join("'{}'".format(t) for t in template_files))
-    # Add marker file to tell mock to archive the sources
-    open('.write_tar', 'a').close()
-    # Add marker file changes to the rpm folder
-    execute_command('git add .write_tar ' + rpm_dir)
-    # Commit changes
-    execute_command('git commit -m "Generated RPM files for ' +
-                    rpm_distro + '"')
-    # Rename the template spec file
-    execute_command('git mv ' + rpm_dir + '/template.spec ' + rpm_dir + '/' + subs['Package'] + '.spec')
-    # Commit changes
-    execute_command('git commit -m "Renamed RPM spec file for ' +
-                    rpm_distro + '"')
-    # Return the subs for other use
-    return subs
-
+        # Use subs to create and store releaser history
+        self.set_releaser_history(dict(subs['changelogs']))
+        # Template files
+        template_files = process_template_files('.', subs)
+        # Remove any residual template files
+        execute_command('git rm -rf ' + ' '.join("'{}'".format(t) for t in template_files))
+        # Add marker file to tell mock to archive the sources
+        open('.write_tar', 'a').close()
+        # Add marker file changes to the rpm folder
+        execute_command('git add .write_tar ' + rpm_dir)
+        # Commit changes
+        execute_command('git commit -m "Generated RPM files for ' +
+                        rpm_distro + '"')
+        # Rename the template spec file
+        execute_command('git mv ' + rpm_dir + '/template.spec ' + rpm_dir + '/' + subs['Package'] + '.spec')
+        # Commit changes
+        execute_command('git commit -m "Renamed RPM spec file for ' +
+                        rpm_distro + '"')
+        # Return the subs for other use
+        return subs
     def generate_tag_name(self, data):
         tag_name = '{Package}-{Version}-{RPMInc}_{Distribution}'
         tag_name = 'rpm/' + tag_name.format(**data)
